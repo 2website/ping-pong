@@ -1,5 +1,5 @@
 from pygame import *
-
+from random import randint
 
 class GameSprite(sprite.Sprite):
     def __init__(self, player_image, player_x, player_y, player_speed, size_x, size_y):
@@ -30,6 +30,32 @@ class Player(GameSprite):
             self.rect.y += self.speed
 
 
+finish = False
+
+
+class Ball(GameSprite):
+    speed_x = randint(3, 6)
+    speed_y = randint(3, 6)
+
+    def update(self):
+        global finish
+        self.rect.x += self.speed_x
+        self.rect.y += self.speed_y
+        if self.rect.y > h - 50 or self.rect.y < 0:
+            self.speed_y *= -1 * randint(8,12)/10
+
+        if sprite.collide_rect(sprite1, self) or sprite.collide_rect(sprite2, self):
+            self.speed_x *= -1 * randint(8,12)/10
+
+        if self.rect.x < 0:
+            finish = True
+            window.blit(win2, (700, 400))
+
+        if self.rect.x > w:
+            finish = True
+            window.blit(win1, (700, 400))
+
+
 w = 1530
 h = 800
 back = "#64A8D1"
@@ -37,37 +63,42 @@ window = display.set_mode((w, h))
 display.set_caption("Пинг-Понг")
 window.fill(back)
 
+sprite1 = Player('kirp.jpg', 100, 0, 40, 5, 150)
+sprite2 = Player('kirp.jpg', 1300, 0, 40, 5, 150)
+ball = Ball('ball.png', 600, 500, 40, 50, 50)
+ball2 = Ball('ball.png', 500, 400, 40, 50, 50)
+ball2.speed_x *= -1
 
-sprite1 = Player('kirp.jpg', 10, 0, 40, 50, 100)
-sprite2 = Player('kirp.jpg', 1300, 0, 40, 50, 100)
-ball = GameSprite('ball.png', 600, 500, 40, 50, 50)
-
-
+font.init()
+font1 = font.Font(None, 35)
+win1 = font1.render('PLAYER 1 WIN', True, (100, 0, 0))
+win2 = font1.render('PLAYER 2 WIN', True, (100, 0, 0))
 clock = time.Clock()
 FPS = 60
 game = True
-speed_x = 3
-speed_y = 3
-finish = False
+
 while game:
     for e in event.get():
         if e.type == QUIT:
             game = False
+        if e.type == KEYDOWN:
+            if e.key == K_r:
+                ball.rect.x = 600
+                ball.speed_x = randint(3, 6)
+                ball2.rect.x = 500
+                ball2.speed_x = -1 * ball.speed_x
+                finish = False
 
     if not finish:
         window.fill(back)
         sprite1.update_l()
         sprite2.update_r()
-        ball.rect.x += speed_x
-        ball.rect.y += speed_y
-        if ball.rect.y > 100:
-            ball.rect.y -= speed_y
-
-
-    sprite1.reset()
-    sprite2.reset()
-    ball.reset()
-    ball.update()
+        ball2.update()
+        ball.update()
+        sprite1.reset()
+        sprite2.reset()
+        ball.reset()
+        ball2.reset()
 
     display.update()
     clock.tick(FPS)
